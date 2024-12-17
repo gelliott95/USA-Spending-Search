@@ -11,7 +11,7 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
             "recipient_search_text": [recipient_name],
             "award_type_codes": award_type_codes
         },
-        "fields": ["Award ID", "Recipient Name", amount_field, "Description", "generated_internal_id"],  # Removed action_date here
+        "fields": ["Award ID", "Recipient Name", amount_field, "Description", "internal_id"],  # Corrected to "internal_id"
         "sort": amount_field,
         "order": "desc",
         "limit": 100,
@@ -39,12 +39,12 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
         # Print the available columns for debugging purposes
         st.write("Columns available in the data:", df.columns.tolist())
 
-        # Remove 'generated_internal_id' if it exists
-        if 'generated_internal_id' in df.columns:
-            df = df.drop(columns=['generated_internal_id'])
+        # Remove 'internal_id' if it exists (no need to remove anymore as it's correct now)
+        if 'internal_id' in df.columns:
+            df = df.drop(columns=['internal_id'])
 
         # Reorder columns based on available data
-        available_columns = ["Recipient Name", amount_field, "Description", "generated_internal_id", "Award ID"]
+        available_columns = ["Recipient Name", amount_field, "Description", "internal_id", "Award ID"]
         existing_columns = [col for col in available_columns if col in df.columns]
         df = df[existing_columns]  # Reorder to match the available columns
         
