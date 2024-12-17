@@ -11,7 +11,7 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
             "recipient_search_text": [recipient_name],
             "award_type_codes": award_type_codes
         },
-        "fields": ["Award ID", "Recipient Name", amount_field, "Description", "action_date"],  # Added action_date here
+        "fields": ["Award ID", "Recipient Name", amount_field, "Description", "generated_internal_id"],  # Removed action_date here
         "sort": amount_field,
         "order": "desc",
         "limit": 100,
@@ -33,32 +33,16 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
             st.error(f"Error: {response.status_code} - {response.text}")
             break
 
-    # Print the raw results for debugging
     if all_results:
-        st.write("Raw API Response:", all_results[:3])  # Show first 3 results to inspect the data structure
-        
         df = pd.DataFrame(all_results)
-        
-        # Check if action_date is available in the results
-        if 'action_date' in df.columns:
-            st.write("action_date field found in the data")
-            
-            # Check if action_date contains any null values
-            null_dates = df['action_date'].isnull().sum()
-            st.write(f"Number of null action_date values: {null_dates}")
-            
-            # Convert action_date to datetime format (handle errors and missing values)
-            df['action_date'] = pd.to_datetime(df['action_date'], errors='coerce', utc=True)
-            
-            # Optionally, display the first few action_date values to check if the conversion worked
-            st.write("First few action_date values after conversion:", df['action_date'].head())
-        else:
-            st.write("action_date field is missing in the API response")
         
         # Remove 'generated_internal_id' if it exists
         if 'generated_internal_id' in df.columns:
             df = df.drop(columns=['generated_internal_id'])
 
+        # Reorder columns
+        df = df[["Recipient Name", amount_field, "Description", "generated_internal_id", "Award ID"]]
+        
         return df
     else:
         st.info("No data found for the given input.")
