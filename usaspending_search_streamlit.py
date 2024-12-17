@@ -1,29 +1,84 @@
-import streamlit as st
 import requests
 import pandas as pd
+import tempfile
+import streamlit as st
 
-# Define your function to fetch data
-def fetch_award_data(recipient_name, award_type):
+# Function to fetch award data
+def fetch_award_data(recipient_name, award_type_codes, amount_field):
     url = "https://api.usaspending.gov/api/v2/search/spending_by_award/"
     payload = {
-        "filters": {"recipient_search_text": [recipient_name]},
-        "award_type_codes": ["A", "B", "C", "D"] if award_type == "Contracts" else ["07", "08"],
-        "fields": ["Award ID", "Recipient Name", "Award Amount", "Description"],
-        "limit": 100
+        "filters": {
+            "recipient_search_text": [recipient_name],
+            "award_type_codes": award_type_codes
+        },
+        "fields": ["Award ID", "Recipient Name", amount_field, "Description"],
+        "sort": amount_field,
+        "order": "desc",
+        "limit": 100,
+        "page": 1
     }
-    response = requests.post(url, json=payload)
-    if response.status_code == 200:
-        return pd.DataFrame(response.json().get("results", []))
-    else:
-        return pd.DataFrame()  # Return empty DataFrame in case of error
+    headers = {"Content-Type": "application/json"}
 
-# Streamlit UI
-recipient_name = st.text_input("Recipient Name:")
-award_type = st.radio("Award Type", ["Contracts", "Loans"])
+    all_results = []
 
-if st.button("Fetch Data"):
-    data = fetch_award_data(recipient_name, award_type)
-    if not data.empty:
-        st.write(data)
+    while True:
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code == 200:
+            results = response.json().get("results", [])
+            if not results:
+                break
+            all_results.extend(results)
+            payload["page"] += 1
+        else:
+            st.error(f"Error: {response.status_code} - {response.text}")
+            break
+
+    if all_results:
+        df = pd.DataFrame(all_results)
+        
+        # Remove 'generated_internal_id' if it exists
+        if 'generated_internal_id' in df.columns:
+            df = df.drop(columns=['generated_internal_id'])
+
+        return df
     else:
-        st.write("No data found or an error occurred.")
+        st.info("No data found for the given input.")
+        return None
+
+# Streamlit UI for the app
+def start_streamlit_app():
+    st.title("USA Spending Data Fetch Tool")
+
+    # Recipient Name
+    recipient_name = st.text_input("Recipient Name:")
+
+    # Award Type
+    award_type = st.radio("Select Award Type:", ["Contracts", "Loans"])
+
+    if recipient_name and award_type:
+        # Dynamically set award type codes and amount field
+        if award_type == "Contracts":
+            award_type_codes = ["A", "B", "C", "D"]
+            amount_field = "Award Amount"
+        else:
+            award_type_codes = ["07", "08"]
+            amount_field = "Loan Value"
+
+        # Fetch award data
+        df = fetch_award_data(recipient_name, award_type_codes, amount_field)
+        
+        if df is not None:
+            # Display data in Streamlit app
+            st.subheader(f"Data for {recipient_name} ({award_type}):")
+            st.dataframe(df)
+
+            # Option to download the data as CSV
+            csv = df.to_csv(index=False)
+            st.download_button("Download Data as CSV", csv, file_name="usaspending_data.csv")
+            
+        else:
+            st.info("No data found for the given recipient.")
+
+if __name__ == "__main__":
+    start_streamlit_app()
+
