@@ -11,7 +11,7 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
             "recipient_search_text": [recipient_name],
             "award_type_codes": award_type_codes
         },
-        "fields": ["Award ID", "Recipient Name", amount_field, "Description"],
+        "fields": ["Award ID", "Recipient Name", amount_field, "Description", "Action Date"],  # Add "Action Date" here
         "sort": amount_field,
         "order": "desc",
         "limit": 100,
@@ -39,6 +39,10 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
         # Remove 'generated_internal_id' if it exists
         if 'generated_internal_id' in df.columns:
             df = df.drop(columns=['generated_internal_id'])
+        
+        # Convert the "Action Date" column to datetime for better formatting
+        if 'action_date' in df.columns:
+            df['Action Date'] = pd.to_datetime(df['action_date'], errors='coerce')
 
         return df
     else:
@@ -81,4 +85,3 @@ def start_streamlit_app():
 
 if __name__ == "__main__":
     start_streamlit_app()
-
