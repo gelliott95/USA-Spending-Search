@@ -35,9 +35,6 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
 
     if all_results:
         df = pd.DataFrame(all_results)
-        
-        # Print the available columns for debugging purposes
-        st.write("Columns available in the data:", df.columns.tolist())
 
         # Remove 'generated_internal_id' if it exists
         if 'generated_internal_id' in df.columns:
