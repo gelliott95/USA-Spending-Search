@@ -33,16 +33,23 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
             st.error(f"Error: {response.status_code} - {response.text}")
             break
 
+    # Print the raw results for debugging
     if all_results:
+        st.write("Raw API Response:", all_results[:3])  # Show first 3 results to inspect the data structure
+        
         df = pd.DataFrame(all_results)
+        
+        # Check if action_date is available in the results
+        if 'action_date' in df.columns:
+            st.write("action_date field found in the data")
+            # Convert action_date to datetime format
+            df['action_date'] = pd.to_datetime(df['action_date'], errors='coerce')
+        else:
+            st.write("action_date field is missing in the API response")
         
         # Remove 'generated_internal_id' if it exists
         if 'generated_internal_id' in df.columns:
             df = df.drop(columns=['generated_internal_id'])
-
-        # Convert action_date to datetime format
-        if 'action_date' in df.columns:
-            df['action_date'] = pd.to_datetime(df['action_date'], errors='coerce')
 
         return df
     else:
