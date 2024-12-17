@@ -4,7 +4,6 @@ import pandas as pd
 
 # Define your function to fetch data
 def fetch_award_data(recipient_name, award_type):
-    # Your API fetching code goes here (no Flask needed)
     url = "https://api.usaspending.gov/api/v2/search/spending_by_award/"
     payload = {
         "filters": {"recipient_search_text": [recipient_name]},
@@ -28,7 +27,3 @@ if st.button("Fetch Data"):
         st.write(data)
     else:
         st.write("No data found or an error occurred.")
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
