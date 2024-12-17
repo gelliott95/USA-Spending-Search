@@ -36,12 +36,17 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
     if all_results:
         df = pd.DataFrame(all_results)
         
+        # Print the available columns for debugging purposes
+        st.write("Columns available in the data:", df.columns.tolist())
+
         # Remove 'generated_internal_id' if it exists
         if 'generated_internal_id' in df.columns:
             df = df.drop(columns=['generated_internal_id'])
 
-        # Reorder columns
-        df = df[["Recipient Name", amount_field, "Description", "generated_internal_id", "Award ID"]]
+        # Reorder columns based on available data
+        available_columns = ["Recipient Name", amount_field, "Description", "generated_internal_id", "Award ID"]
+        existing_columns = [col for col in available_columns if col in df.columns]
+        df = df[existing_columns]  # Reorder to match the available columns
         
         return df
     else:
