@@ -42,8 +42,16 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
         # Check if action_date is available in the results
         if 'action_date' in df.columns:
             st.write("action_date field found in the data")
-            # Convert action_date to datetime format
-            df['action_date'] = pd.to_datetime(df['action_date'], errors='coerce')
+            
+            # Check if action_date contains any null values
+            null_dates = df['action_date'].isnull().sum()
+            st.write(f"Number of null action_date values: {null_dates}")
+            
+            # Convert action_date to datetime format (handle errors and missing values)
+            df['action_date'] = pd.to_datetime(df['action_date'], errors='coerce', utc=True)
+            
+            # Optionally, display the first few action_date values to check if the conversion worked
+            st.write("First few action_date values after conversion:", df['action_date'].head())
         else:
             st.write("action_date field is missing in the API response")
         
