@@ -1,6 +1,5 @@
 import requests
 import pandas as pd
-import tempfile
 import streamlit as st
 
 # Function to fetch award data
@@ -23,6 +22,11 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
 
     while True:
         response = requests.post(url, json=payload, headers=headers)
+        
+        # Debugging: print full response
+        st.write("Response Status Code:", response.status_code)
+        st.write("Response Text:", response.text)
+
         if response.status_code == 200:
             results = response.json().get("results", [])
             if not results:
@@ -35,11 +39,11 @@ def fetch_award_data(recipient_name, award_type_codes, amount_field):
 
     if all_results:
         df = pd.DataFrame(all_results)
-        
-        # Print the available columns for debugging purposes
+
+        # Print available columns for debugging purposes
         st.write("Columns available in the data:", df.columns.tolist())
 
-        # Remove 'internal_id' if it exists (no need to remove anymore as it's correct now)
+        # Remove 'internal_id' if it exists
         if 'internal_id' in df.columns:
             df = df.drop(columns=['internal_id'])
 
